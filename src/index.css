@@ -1,0 +1,37 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+#map {
+  height: 500px;
+  width: 100%;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+/* Слайдер стили */
+.slider-container {
+  width: 300px;
+  margin: 0 auto;
+}
+
+.slider-track {
+  background: #ccc;
+  height: 6px;
+  border-radius: 3px;
+}
+
+.slider-thumb {
+  height: 16px;
+  width: 16px;
+  background-color: #007bff;
+  border-radius: 50%;
+  cursor: grab;
+  margin-top: -5px;
+}

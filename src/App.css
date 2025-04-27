@@ -1,0 +1,463 @@
+body, html, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.App {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+h1 {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 300;
+  font-size: 64px;
+  margin-top: 0;
+  
+}
+
+
+h1::after {
+  content: "";
+  display: block;
+  width: 500px;
+  height: 2px;
+  background-color: #5397F9;
+  margin: 0px auto 0;
+  border-radius: 1px;
+}
+
+.title-wrapper {
+  position: relative;
+  height: 100px; /* задаём фиксированную высоту */
+  margin-bottom: 40px;
+}
+
+.title-decorated {
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.title-decorated::before,
+.title-decorated::after {
+  content: "";
+  position: absolute;
+  top: 0px; /* настраивай по вертикали */
+  width: 0;
+  height: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.title-decorated::before {
+  left: 0;
+  border-style: solid;
+  border-width: 60px 0 60px 360px;
+  border-color: transparent transparent transparent #5397F9;
+}
+
+.title-decorated::after {
+  right: 0;
+  border-style: solid;
+  border-width: 60px 360px 60px 0;
+  border-color: transparent #5397F9 transparent transparent;
+}
+
+
+
+
+/* СЛАЙДЕР */
+.slider-container {
+  width: 300px;
+  margin: 5px auto 25px; /* уменьшили верхний отступ (было 1px) */
+  z-index: 1001;
+  text-align: center;
+}
+
+.slider-container label {
+  display: block;
+  font-size: 18px; /* увеличили шрифт */
+  font-weight: 500;
+  margin-top: -20px;
+  margin-bottom: 10px;
+}
+
+
+.slider-track {
+  background: #ccc;
+  height: 10px; /* Было 6px → стало выше */
+  border-radius: 5px;
+}
+
+.slider-thumb {
+  height: 20px; /* Сделал больше для пропорции */
+  width: 20px;
+  background-color: #007bff;
+  border-radius: 50%;
+  cursor: grab;
+  margin-top: -5px; /* Подстроим под высоту трека */
+}
+/* КАРТА */
+.map-wrapper {
+  flex-grow: 1;
+  position: relative;
+}
+
+.map-container {
+  height: 99%;
+  width: 100%;
+  position: relative;
+}
+
+/* ЗУМ-КНОПКИ — ПО ЦЕНТРУ СЛЕВА */
+.leaflet-top.leaflet-left {
+  top: 50% !important;
+  left: 20px !important;
+  transform: translateY(-50%);
+  z-index: 1000;
+}
+
+/* ВЕРХНЯЯ ПАНЕЛЬ КНОПОК */
+.top-controls {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  z-index: 401;
+  display: flex;
+  flex-wrap: nowrap;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: white;
+}
+
+.top-controls button {
+  all: unset;
+  padding: 10px 16px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
+  transition: background-color 0.2s ease-in-out;
+}
+
+
+.top-controls button:last-child {
+  border-right: none;
+}
+
+
+.top-controls button:hover {
+  background-color: #f0f0f0;
+}
+
+.top-controls button.active {
+  background-color: #5397F9 !important;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+
+/* БОКОВАЯ ПАНЕЛЬ КНОПОК */
+.controls {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  z-index: 401;
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: white;
+}
+
+.controls button {
+  all: unset; /* сбрасывает все дефолтные стили браузера */
+  padding: 10px 16px;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s ease-in-out;
+  text-align: left;
+}
+
+.controls button:last-child {
+  border-bottom: none;
+}
+
+.controls button:hover {
+  background-color: #f0f0f0;
+}
+
+.controls button.active {
+  background-color: #5397F9 !important;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+
+.center-controls {
+  position: absolute;
+  top: 10px; /* Отступ от верха, между top-controls и controls */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 401;
+  display: flex;
+  background-color: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+
+.center-controls button {
+  all: unset;
+  background-color: #fff;
+  border-right: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+  text-align: center;
+}
+
+.center-controls button:last-child {
+  border-right: none; /* Убираем границу у последней */
+}
+
+.center-controls button:hover {
+  background-color: #f0f0f0;
+}
+
+.center-controls button.active {
+  background-color: #5397F9 !important;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+
+.legend h4 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid #aaa;
+  border-radius: 2px;
+}
+
+.legend-box {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  line-height: 1.4;
+}
+
+.legend-gradient {
+  display: flex;
+  gap: 4px;
+  margin: 4px 0 12px;
+}
+
+.legend-swatch {
+  width: 20px;
+  height: 14px;
+  border: 1px solid #ccc;
+}
+
+
+.legend-box-horizontal {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  font-size: 18px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+}
+
+.legend-horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  margin-top: 12px;
+}
+
+.legend-candidate {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+}
+
+.legend-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+}
+
+.legend-color-box {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #aaa;
+}
+
+.legend-label {
+  font-size: 14px;
+}
+
+
+
+.legend-box-horizontal {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: white;
+  padding: 18px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  max-width: 90%;
+}
+
+.legend-box-horizontal h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  z-index: 1001;
+}
+
+.legend-horizontal {
+  display: flex;
+  flex-direction: row;
+  gap: 28px;
+  flex-wrap: wrap;
+  z-index: 1001;
+}
+
+.legend-candidate {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start; /* Было center */
+}
+
+.legend-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  justify-content: start; /* Добавим это */
+}
+
+
+.legend-color-box {
+  width: 36px;
+  height: 20px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
+}
+
+
+.legend-label {
+  font-size: 14px;
+  min-width: 60px;
+}
+
+.legend-name {
+  margin-top: 10px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.legend-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1001;
+}
+
+.info-panel {
+  position: absolute;
+  top: 220px; /* ← было 160px */
+  right: 20px;
+  width: 340px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+  padding: 20px;
+  z-index: 1200;
+  animation: slideIn 0.3s ease-out;
+  font-size: 1.125rem;
+}
+
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: transparent;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.bar-label {
+  width: 80px; /* фиксированная ширина под фамилию */
+  text-align: right;
+  font-weight: 500;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.bar-wrapper {
+  flex: 1;
+  background: #eee;
+  height: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 8px 0 0 8px;
+}
+
+.bar-percent {
+  width: 50px;
+  text-align: left;
+  font-size: 14px;
+  flex-shrink: 0;
+}
