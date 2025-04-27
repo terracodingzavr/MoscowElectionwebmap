@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/MoscowElectionwebmap/static/css/main.67bed559.css",
+    "main.js": "/MoscowElectionwebmap/static/js/main.ee0a2f15.js",
+    "static/js/453.0f511901.chunk.js": "/MoscowElectionwebmap/static/js/453.0f511901.chunk.js",
+    "index.html": "/MoscowElectionwebmap/index.html",
+    "main.67bed559.css.map": "/MoscowElectionwebmap/static/css/main.67bed559.css.map",
+    "main.ee0a2f15.js.map": "/MoscowElectionwebmap/static/js/main.ee0a2f15.js.map",
+    "453.0f511901.chunk.js.map": "/MoscowElectionwebmap/static/js/453.0f511901.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.67bed559.css",
+    "static/js/main.ee0a2f15.js"
+  ]
+}
