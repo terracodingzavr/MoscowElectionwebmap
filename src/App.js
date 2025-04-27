@@ -353,68 +353,73 @@ function App() {
 
 
 	useEffect(() => {
+	    if (year === 2013 && activeElectionLevel === "Мэр") {
+			fetch(process.env.PUBLIC_URL + "/data/districts_with_2013_mer.geojson")
+			  .then(res => res.json())
+			  .then(data => {
+				setDistrictData(data);
+				const levels = getAdvantageLevels(data.features, "2013_mer_");
+				setDistrictLegendLevels(levels);
+			  });
+
+			fetch(process.env.PUBLIC_URL + "/data/united_uiks_with_final_2013_mer.geojson")
+			  .then(res => res.json())
+			  .then(data => {
+				setUikData(data);
+				const levels = getAdvantageLevels(data.features, "2013_mer_");
+				setLegendLevels(levels);
+			  });
+		  }
 	  if (year === 2018 && activeElectionLevel === "Президент") {
-		  fetch("/data/moscow_2018_president_results.geojson")
-			.then(res => res.json())
-			.then(data => {
-			  setDistrictData(data);
-			  const levels = getAdvantageLevels(data.features, "2018_president_");
-			  setDistrictLegendLevels(levels);
-			});
-
-		  setUikData(null); // В 2018 УИКов в этих данных пока нет
-		  setLegendLevels({});
-		}
-
-	  if (year === 2013 && activeElectionLevel === "Мэр") {
-		fetch("/data/districts_with_2013_mer.geojson")
+		fetch(process.env.PUBLIC_URL + "/data/moscow_2018_president_results.geojson")
 		  .then(res => res.json())
 		  .then(data => {
 			setDistrictData(data);
-			const levels = getAdvantageLevels(data.features, "2013_mer_");
+			const levels = getAdvantageLevels(data.features, "2018_president_");
 			setDistrictLegendLevels(levels);
 		  });
 
-		fetch("/data/united_uiks_with_final_2013_mer.geojson")
+		fetch(process.env.PUBLIC_URL + "/data/united_uiks_with_final_2013_mer.geojson")
 		  .then(res => res.json())
 		  .then(data => {
 			setUikData(data);
-			const levels = getAdvantageLevels(data.features, "2013_mer_");
+			const levels = getAdvantageLevels(data.features, "2018_president_");
 			setLegendLevels(levels);
 		  });
 	  }
 
 	  if (year === 2012 && activeElectionLevel === "Президент") {
-		fetch("/data/moscow_2012_president_results.geojson")
+		fetch(process.env.PUBLIC_URL + "/data/moscow_2012_president_results.geojson")
 		  .then(res => res.json())
 		  .then(data => {
 			setDistrictData(data);
 			const levels = getAdvantageLevels(data.features, "2012_president_");
 			setDistrictLegendLevels(levels);
 		  });
-		fetch("/data/uik_results_2012_president.geojson")
+
+		fetch(process.env.PUBLIC_URL + "/data/uik_results_2012_president.geojson")
 		  .then(res => res.json())
 		  .then(data => {
-			  setUikData(data);
-			  const levels = getAdvantageLevels(data.features, "2012_president_");
-			  setLegendLevels(levels);
+			setUikData(data);
+			const levels = getAdvantageLevels(data.features, "2012_president_");
+			setLegendLevels(levels);
 		  });
+	  }
+
 	  if (year === 2016 && activeElectionLevel === "Госдума" && activeListType === "Список") {
-		  fetch("/data/moscow_2016_duma_results.geojson")
-			.then(res => res.json())
-			.then(data => {
-			  setDistrictData(data);
-			  const levels = getAdvantageLevels(data.features, "2016_duma_");
-			  setDistrictLegendLevels(levels);
-			});
+		fetch(process.env.PUBLIC_URL + "/data/moscow_2016_duma_results.geojson")
+		  .then(res => res.json())
+		  .then(data => {
+			setDistrictData(data);
+			const levels = getAdvantageLevels(data.features, "2016_duma_");
+			setDistrictLegendLevels(levels);
+		  });
 
-		  setLegendLevels({});
-		}
-
+		setLegendLevels({});
+	  }
 
 	  console.log("DistrictData:", districtData);
-	  }
-	}, [year, activeElectionLevel]);
+	}, [year, activeElectionLevel, activeListType]);
 
 
 
