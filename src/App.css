@@ -461,3 +461,9 @@ h1::after {
   font-size: 14px;
   flex-shrink: 0;
 }
+
+.district-layer path {
+  stroke: #000;       /* чёрная граница */
+  stroke-width: 2;    /* как у районного слоя */
+  fill-opacity: 1;    /* сплошная заливка */
+}

@@ -6,6 +6,8 @@ import "./App.css";
 import { useMapEvents } from "react-leaflet";
 
 
+
+
 // Эти два блока вынеси вверх файла, вместе с другими константами
 const defaultAdvantageSteps = [
   [5, 0.2],
@@ -31,7 +33,10 @@ const president2018Colors = {
   Титов: "#70a9d8",            // Светло-серо-голубой
   Явлинский: "#8bc34a"         // Светло-зелёный
 };
-
+const detailMap = {
+  true: 'uik',         // когда mapZoom > 12
+  false: 'district'    // иначе
+};
 
 function ZoomWatcher({ onZoomChange }) {
   useMapEvents({
@@ -116,15 +121,21 @@ const presidentTurnoutThresholds = [
 ];
 
 const duma2016Colors = {
-  "Единая_Россия": "#0072bc",
-  "КПРФ": "#d73027",
-  "ЛДПР": "#00bfff",
-  "Справедливая_Россия": "#f28c28",
-  "Яблоко": "#8bc34a",
-  // остальные будут серыми автоматически
+  "Единая Россия":       "#0072bc",
+  "КПРФ":                "#d73027",
+  "ЛДПР":                "#00bfff",
+  "Справедливая Россия": "#f28c28",
+  "Яблоко":              "#8bc34a",
 };
 
-
+const duma2021Colors = {
+  "Единая Россия":       "#0072bc",
+  "КПРФ":                "#d73027",
+  "ЛДПР":                "#00bfff",
+  "СРЗП":                "#f28c28",
+  "Новые люди":          "#50bdc4",
+  "Яблоко":              "#8bc34a"
+};
 
 const baseColors = {
   Собянин: "#0072bc",    // синий
@@ -132,7 +143,12 @@ const baseColors = {
   Мельников: "#d73027",  // красный
   Митрохин: "#8bc34a",   // светло-зелёный (как Явлинский)
   Дегтярёв: "#00bfff",   // голубой (как Жириновский)
-  Левичев: "#999999"     // серый
+  Левичев: "#999999" ,    // серый
+  'ЕдинаяРоссия':'#0055A4',  // синий ЕР
+  'КПРФ':                 '#D11D22',  // красный КПРФ
+  'ЛДПР':                 '#FFCC00',  // жёлтый ЛДПР
+  'Справедливая Россия':  '#E31E1C',  // тёмно-красный СР
+  'Новые Люди':           '#00BFFF',  // небесно-голубой
 };
 
 
@@ -265,14 +281,17 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
     } 
     else if (year === 2018) {
       if (props.uik_num) {
-        for (const key in props) {
-          if (key.startsWith("2018_president_")) {
-            const rawName = key.replace("2018_president_", "");
-            const shortName = rawName.split("_")[0];
-            candidates[shortName] = props[key];
-          }
-        }
-      } else {
+            for (const key in props) {
+              if (key.startsWith("2018_president_")) {
+                const rawName   = key.replace("2018_president_", "");
+                const shortName = rawName.split("_")[0];
+                // Отсекаем "явка", "недействительные" и все прочие не-кандидаты
+                if (/^[А-ЯЁ]/.test(shortName)) {
+                  candidates[shortName] = props[key];
+                }
+              }
+            }
+          } else {
         candidates = {
           Путин: props[`2018_president_Путин`] || 0,
           Грудинин: props[`2018_president_Грудинин`] || 0,
@@ -287,18 +306,35 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
     }
   }
   else if (activeElectionLevel === "Госдума" && year === 2016) {
-    // Госдума 2016: списки партий
+    // Госдума 2016 (список)
+    const prefix = electionPrefixes["Госдума"]?.[2016] || "";
+
+    // Берём только те партии, для которых задан цвет
     for (const key in props) {
-      if (key.startsWith("2016_duma_")) {
-        const rawName = key.replace("2016_duma_", "");
-        const shortName = rawName.split("_")[0];
-        if (/^[А-ЯЁ]/.test(shortName)) {
-          candidates[shortName] = props[key];
-        }
-      }
+      if (!key.startsWith(prefix)) continue;
+
+      const rawName = key.slice(prefix.length);        // например "Единая Россия"
+      if (!(rawName in duma2016Colors)) continue;      // фильтруем по вашей палитре
+
+      candidates[rawName] = props[key];
     }
+
     colorPalette = duma2016Colors;
   }
+
+   else if (activeElectionLevel === "Госдума" && year === 2021) {
+    const prefix = electionPrefixes["Госдума"][2021] || "";
+    // только те партии, что в палитре
+    for (const key in props) {
+      if (!key.startsWith(prefix)) continue;
+      const name = key.slice(prefix.length);
+      if (name in duma2021Colors) {
+        candidates[name] = props[key] || 0;
+      }
+    }
+    colorPalette = duma2021Colors;
+  }
+
   else {
     // Мэрские выборы
     candidates = {
@@ -311,24 +347,21 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
 
   // --- Определяем победителя ---
   const sorted = Object.entries(candidates).sort((a, b) => b[1] - a[1]);
-  console.log("Sorted candidates:", sorted);
-
   if (sorted.length === 0) {
-    return "rgba(204,204,204,0.3)"; // серый полупрозрачный
+    return "rgba(204,204,204,0.3)";
   }
-
-  const winner = sorted[0][0];
+  const winner    = sorted[0][0];
   const advantage = sorted[0][1] - (sorted[1]?.[1] ?? 0);
-  const color = colorPalette[winner] || "#cccccc"; // если нет цвета в палитре — серый
+  const baseColor = colorPalette[winner] || "#cccccc";
 
-  // --- Шаги прозрачности ---
+  // --- Шаги прозрачности (как у вас было) ---
   const steps = (activeElectionLevel === "Президент" && year === 2018)
     ? advantageStepsPresident2018
     : defaultAdvantageSteps;
-
   const alpha = steps.find(([limit]) => advantage < limit)?.[1] || 1;
 
-  return shadeColor(color, alpha);
+  // Возвращаем итоговый цвет
+  return shadeColor(baseColor, alpha);
 }
 
 
@@ -343,93 +376,72 @@ function App() {
   const [activeElectionLevel, setActiveElectionLevel] = useState("Госдума");
   const [activeListType, setActiveListType] = useState("Округ");
   const [mapZoom, setMapZoom] = useState(10);
-  const showPrecinctLayer = mapZoom > 12;
+  const availablePrecinctElections = {
+    'Президент':   [2012, 2018],
+    'Госдума':     [2016, 2021],          // если для Госдумы уИКов нет, оставьте пустым
+    'Мосгордума':  [2014, 2019],          // аналогично
+    'Мэр':         [2013, 2018]           // и т.д.
+  };
+
+  const showPrecinctLayer =
+    mapZoom > 12 &&
+    availablePrecinctElections[activeElectionLevel]?.includes(year) &&
+    (activeElectionLevel !== 'Госдума' || activeListType === 'Список');
   const [districtData, setDistrictData] = useState(null);
   const [uikData, setUikData] = useState(null);
   const [legendLevels, setLegendLevels] = useState({});
   const [districtLegendLevels, setDistrictLegendLevels] = useState({});
   const mapRef = useRef();
   const [selectedFeature, setSelectedFeature] = useState(null);
-
-
-	useEffect(() => {
-	    if (year === 2013 && activeElectionLevel === "Мэр") {
-			fetch(process.env.PUBLIC_URL + "/data/districts_with_2013_mer.geojson")
-			  .then(res => res.json())
-			  .then(data => {
-				setDistrictData(data);
-				const levels = getAdvantageLevels(data.features, "2013_mer_");
-				setDistrictLegendLevels(levels);
-			  });
-
-			fetch(process.env.PUBLIC_URL + "/data/united_uiks_with_final_2013_mer.geojson")
-			  .then(res => res.json())
-			  .then(data => {
-				setUikData(data);
-				const levels = getAdvantageLevels(data.features, "2013_mer_");
-				setLegendLevels(levels);
-			  });
-		  }
-	  if (year === 2018 && activeElectionLevel === "Президент") {
-		fetch(process.env.PUBLIC_URL + "/data/moscow_2018_president_results.geojson")
-		  .then(res => res.json())
-		  .then(data => {
-			setDistrictData(data);
-			const levels = getAdvantageLevels(data.features, "2018_president_");
-			setDistrictLegendLevels(levels);
-		  });
-
-		fetch(process.env.PUBLIC_URL + "/data/united_uiks_with_final_2013_mer.geojson")
-		  .then(res => res.json())
-		  .then(data => {
-			setUikData(data);
-			const levels = getAdvantageLevels(data.features, "2018_president_");
-			setLegendLevels(levels);
-		  });
-	  }
-
-	  if (year === 2012 && activeElectionLevel === "Президент") {
-		fetch(process.env.PUBLIC_URL + "/data/moscow_2012_president_results.geojson")
-		  .then(res => res.json())
-		  .then(data => {
-			setDistrictData(data);
-			const levels = getAdvantageLevels(data.features, "2012_president_");
-			setDistrictLegendLevels(levels);
-		  });
-
-		fetch(process.env.PUBLIC_URL + "/data/uik_results_2012_president.geojson")
-		  .then(res => res.json())
-		  .then(data => {
-			setUikData(data);
-			const levels = getAdvantageLevels(data.features, "2012_president_");
-			setLegendLevels(levels);
-		  });
-	  }
-
-	  if (year === 2016 && activeElectionLevel === "Госдума" && activeListType === "Список") {
-		fetch(process.env.PUBLIC_URL + "/data/moscow_2016_duma_results.geojson")
-		  .then(res => res.json())
-		  .then(data => {
-			setDistrictData(data);
-			const levels = getAdvantageLevels(data.features, "2016_duma_");
-			setDistrictLegendLevels(levels);
-		  });
-
-		setLegendLevels({});
-	  }
-
-	  console.log("DistrictData:", districtData);
-	}, [year, activeElectionLevel, activeListType]);
-
-
-
-const showDistrictLayer = 
-  (year === 2013 && activeElectionLevel === "Мэр") || 
-  (year === 2012 && activeElectionLevel === "Президент") ||
-  (year === 2018 && activeElectionLevel === "Президент") ||
-  (year === 2016 && activeElectionLevel === "Госдума" && activeListType === "Список");
   
+  useEffect(() => {
+    // 1. Определяем, что грузить — UIK или район
+    const detailMap = {
+      true:  'uik',      // если зум больше порога
+      false: 'district'  // иначе
+    };
+    const levelMap = {
+      Президент:  'president',
+      Мэр:        'mer',
+      Госдума:    activeListType === 'Список' ? 'gd' : 'gdcandidat',
+      Мосгордума: 'mgd'
+    };
 
+    const isPrecinct = mapZoom > 12;
+    const detail    = detailMap[isPrecinct];
+    const level     = levelMap[activeElectionLevel];
+    if (!detail || !level) return;
+
+    // 2. Формируем имя файла и подгружаем GeoJSON
+    const fileName = `${detail}_${level}_${year}.geojson`;
+    fetch(`${process.env.PUBLIC_URL}/data/${fileName}`)
+      .then(res => {
+        if (!res.ok) throw new Error(`Ошибка загрузки ${fileName}: ${res.statusText}`);
+        return res.json();
+      })
+      .then(data => {
+        // 3. Для legendLevels используем префикс из electionPrefixes
+        const prefix = electionPrefixes[activeElectionLevel]?.[year] || '';
+
+        if (detail === 'uik') {
+          setUikData(data);
+          setLegendLevels(getAdvantageLevels(data.features, prefix));
+        } else {
+          setDistrictData(data);
+          setDistrictLegendLevels(getAdvantageLevels(data.features, prefix));
+        }
+      })
+      .catch(err => console.error(err));
+  }, [year, activeElectionLevel, activeListType, mapZoom]);
+
+
+const showDistrictLayer =
+  mapZoom <= 12 && (
+    (activeElectionLevel === 'Президент'  && [2012,2018].includes(year))    ||
+    (activeElectionLevel === 'Мэр'        && [2013,2018].includes(year))    ||
+    (activeElectionLevel === 'Госдума'    && [2016,2021].includes(year) && activeListType === 'Список') ||  // ← и тут
+    (activeElectionLevel === 'Мосгордума' && [2014,2019].includes(year))
+  );
 console.log("Show Precinct Layer:", showPrecinctLayer);
 console.log("Show District Layer:", showDistrictLayer);
 console.log("uikData loaded:", uikData?.features?.length || 0);
@@ -516,116 +528,174 @@ return (
         >
 
 
-				{selectedFeature && (
-				  <div className="info-panel">
-					<button className="close-btn" onClick={() => setSelectedFeature(null)}>×</button>
-					<h4>
-					  {selectedFeature.properties.name ||
-					   (selectedFeature.properties.uik_num ? `УИК №${selectedFeature.properties.uik_num}` : "Участок")}
-					</h4>
+      {selectedFeature && (
+        <div className="info-panel">
+          <button className="close-btn" onClick={() => setSelectedFeature(null)}>×</button>
+          <h4>
+            {selectedFeature.properties.name ||
+            (selectedFeature.properties.uik_num ? `УИК №${selectedFeature.properties.uik_num}` : "Участок")}
+          </h4>
+          {(() => {
+            const prefix     = electionPrefixes[activeElectionLevel]?.[year] || "";
+            // Список партий, которые мы хотим показать
+            const mainParties = [
+              "Единая Россия",
+              "КПРФ",
+              "Справедливая Россия",
+              "ЛДПР",
+              "Новые люди",
+              "Яблоко"
+            ];
 
-					{Object.entries(selectedFeature.properties)
-					  .filter(([key]) => {
-						const prefix = electionPrefixes[activeElectionLevel]?.[year] || "";
-						return key.startsWith(prefix) && /^[А-ЯЁ]/.test(key.replace(prefix, ""));
-					  })
-					  .sort((a, b) => b[1] - a[1])
-					  .map(([key, value]) => {
-						const prefix = electionPrefixes[activeElectionLevel]?.[year] || "";
-						const rawName = key.replace(prefix, "");
-						const name = rawName.split("_")[0]; // Берем только фамилию
+            // Собираем все поля по префиксу
+            const entries = Object.entries(selectedFeature.properties)
+              .map(([key, value]) => ({
+                key,
+                name:  key.replace(prefix, ""),
+                value
+              }))
+              // Оставляем только партии из списка и только кандидатов (имя с заглавной буквы)
+              .filter(({ key, name }) =>
+                key.startsWith(prefix) &&
+                /^[А-ЯЁ]/.test(name) &&
+                mainParties.includes(name)
+              );
 
-						const color = activeElectionLevel === "Президент"
-						  ? (year === 2012 ? presidentColors[name] : president2018Colors[name])
-						  : baseColors[name];
+            return entries
+              .sort((a, b) => b.value - a.value)
+              .map(({ name, value }) => {
+                let color;
+                if (activeElectionLevel === "Президент") {
+                  color = year === 2012
+                    ? presidentColors[name]
+                    : president2018Colors[name];
+                } else if (activeElectionLevel === "Госдума") {
+                  // выбираем палитру по году
+                  color = year === 2016
+                    ? duma2016Colors[name]
+                    : duma2021Colors[name];
+                } else {
+                  color = baseColors[name];
+                }
+                const finalColor = color || "#999";
 
-						const finalColor = color || "#999"; // если цвет не найден
-
-
-						return (
-						  <div key={name} className="bar-row">
-							<div className="bar-label">{name}</div>
-							<div className="bar-wrapper">
-							  <div className="bar-fill" style={{ width: `${value}%`, backgroundColor: color }}></div>
-							</div>
-							<div className="bar-percent">{value.toFixed(1)}%</div>
-						  </div>
-						);
-					  })}
-				  </div>
-				)}
-
-
-			{showDistrictLayer && !showPrecinctLayer && activeDataType === "Победитель" && (
-			  <div className="legend-box-horizontal">
-				<h4>Преимущество победителя</h4>
-				<div className="legend-horizontal">
-				  {Object.entries(districtLegendLevels).map(([name, level]) => (
-					<div className="legend-candidate" key={name}>
-					  {Array.from({ length: level }, (_, i) => {
-						const alpha = [0.2, 0.4, 0.6, 0.85][i];
-						const labels = (activeElectionLevel === "Президент" && year === 2018)
-						  ? ["менее 40", "40–50", "50–60", "более 60"]
-						  : ["менее 5", "5–10", "10–20", "более 20"];
-
-						const label = labels[i];
-						return (
-						  <div key={i} className="legend-entry">
-							<div
-							  className="legend-color-box"
-							  style={{
-								backgroundColor: shadeColor(
-								  activeElectionLevel === "Президент"
-									? presidentColors[name]
-									: baseColors[name],
-								  alpha
-								)
-							  }}
-							></div>
-							<div className="legend-label">{label}%</div>
-						  </div>
-						);
-					  })}
-					  <div className="legend-name">{name}</div>
-					</div>
-				  ))}
-				</div>
-			  </div>
-			)}
+                return (
+                  <div key={name} className="bar-row">
+                    <div className="bar-label">{name}</div>
+                    <div className="bar-wrapper">
+                      <div
+                        className="bar-fill"
+                        style={{ width: `${value.toFixed(1)}%`, backgroundColor: finalColor }}
+                      />
+                    </div>
+                    <div className="bar-percent">{value.toFixed(1)}%</div>
+                  </div>
+                );
+              });
+          })()}
+        </div>
+      )}
 
 
-			{showPrecinctLayer && activeDataType === "Победитель" && (
-			  <div className="legend-box-horizontal">
-				<h4>Преимущество победителя</h4>
-				<div className="legend-horizontal">
-				  {Object.entries(legendLevels).map(([name, level]) => (
-					<div className="legend-candidate" key={name}>
-					  {Array.from({ length: level }, (_, i) => {
-						const alpha = [0.2, 0.4, 0.6, 0.85][i];
-						const label = ["менее 5", "5–10", "10–20", "более 20"][i];
-						return (
-						  <div key={i} className="legend-entry">
-							<div
-							  className="legend-color-box"
-							  style={{
-								backgroundColor: shadeColor(
-								  activeElectionLevel === "Президент"
-									? presidentColors[name]
-									: baseColors[name],
-								  alpha
-								)
-							  }}
-							></div>
-							<div className="legend-label">{label}%</div>
-						  </div>
-						);
-					  })}
-					  <div className="legend-name">{name}</div>
-					</div>
-				  ))}
-				</div>
-			  </div>
-			)}
+
+
+
+
+      {showDistrictLayer && !showPrecinctLayer && activeDataType === "Победитель" && (
+        <div className="legend-box-horizontal">
+          <h4>Преимущество победителя</h4>
+          <div className="legend-horizontal">
+            {Object.entries(districtLegendLevels).map(([name, level]) => (
+              <div className="legend-candidate" key={name}>
+                {Array.from({ length: level }, (_, i) => {
+                  const alpha = [0.2, 0.4, 0.6, 0.85][i];
+                  const labels =
+                    activeElectionLevel === "Президент" && year === 2018
+                      ? ["менее 40", "40–50", "50–60", "более 60"]
+                      : ["менее 5", "5–10", "10–20", "более 20"];
+
+                  // теперь обрабатываем 3 ветки: Президент, Госдума-2016, Госдума-2021
+                  let legendBaseColor;
+                  if (activeElectionLevel === "Президент") {
+                    legendBaseColor = year === 2018
+                      ? president2018Colors[name]
+                      : presidentColors[name];
+                  } else if (activeElectionLevel === "Госдума" && year === 2016) {
+                    legendBaseColor = duma2016Colors[name];
+                  } else if (activeElectionLevel === "Госдума" && year === 2021) {
+                    legendBaseColor = duma2021Colors[name];
+                  } else {
+                    legendBaseColor = baseColors[name];
+                  }
+
+                  return (
+                    <div key={i} className="legend-entry">
+                      <div
+                        className="legend-color-box"
+                        style={{ backgroundColor: shadeColor(legendBaseColor, alpha) }}
+                      />
+                      <div className="legend-label">{labels[i]}</div>
+                    </div>
+                  );
+                })}
+                <div className="legend-name">{name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
+
+
+
+      {showPrecinctLayer && activeDataType === "Победитель" && (
+        <div className="legend-box-horizontal">
+          <h4>Преимущество победителя</h4>
+          <div className="legend-horizontal">
+            {Object.entries(legendLevels).map(([name, level]) => (
+              <div className="legend-candidate" key={name}>
+                {Array.from({ length: level }, (_, i) => {
+                  const alpha = [0.2, 0.4, 0.6, 0.85][i];
+                  const labels =
+                    activeElectionLevel === "Президент" && year === 2018
+                      ? ["менее 40", "40–50", "50–60", "более 60"]
+                      : ["менее 5", "5–10", "10–20", "более 20"];
+
+                  let legendBaseColor;
+                  if (activeElectionLevel === "Президент") {
+                    legendBaseColor = year === 2018
+                      ? president2018Colors[name]
+                      : presidentColors[name];
+                  } else if (activeElectionLevel === "Госдума" && year === 2016) {
+                    legendBaseColor = duma2016Colors[name];
+                  } else if (activeElectionLevel === "Госдума" && year === 2021) {
+                    legendBaseColor = duma2021Colors[name];
+                  } else {
+                    legendBaseColor = baseColors[name];
+                  }
+
+                  return (
+                    <div key={i} className="legend-entry">
+                      <div
+                        className="legend-color-box"
+                        style={{ backgroundColor: shadeColor(legendBaseColor, alpha) }}
+                      />
+                      <div className="legend-label">{labels[i]}</div>
+                    </div>
+                  );
+                })}
+                <div className="legend-name">{name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+
+
+
+
 
 
             <TileLayer
@@ -635,33 +705,45 @@ return (
             <ZoomWatcher onZoomChange={setMapZoom} />
 
 
-			{showDistrictLayer && districtData && !showPrecinctLayer && (
-			  <GeoJSON
-				key={`district-${year}-${activeElectionLevel}-${activeDataType}-${districtData?.features?.length || 0}`}
-				data={districtData}
-				style={(feature) => {
-				  if (activeDataType === "Победитель") {
-					return {
-					  color: "#000",
-					  weight: 2,
-					  fillOpacity: 1,
-					  fillColor: getWinnerColorByAdvantage(feature.properties, year, activeElectionLevel),
-					};
-				  }
-				  return getStyleByDataType(feature.properties, activeDataType, year, activeElectionLevel);
-				}}
-				onEachFeature={(feature, layer) => {
-				  layer.on({
-					click: () => {
-					  if (activeDataType === "Победитель") {
-						setSelectedFeature(null);
-						setTimeout(() => setSelectedFeature(feature), 0);
-					  }
-					},
-				  });
-				}}
-			  />
-			)}
+      {showDistrictLayer && districtData && !showPrecinctLayer && (
+        <GeoJSON
+          key={`district-${year}-${activeElectionLevel}-${activeDataType}-${districtData.features.length}`}
+          data={districtData}
+          style={(feature) => {
+            if (activeDataType === "Победитель") {
+              return {
+                // чёрная граница, как прежде
+                color: "#000",
+                weight: 2,
+                // полностью непрозрачная заливка
+                fillOpacity: 1,
+                // цвет победителя берётся из baseColors через getWinnerColorByAdvantage
+                fillColor: getWinnerColorByAdvantage(
+                  feature.properties,
+                  year,
+                  activeElectionLevel
+                ),
+              };
+            }
+            // для остальных типов данных используем уже готовую функцию
+            return getStyleByDataType(
+              feature.properties,
+              activeDataType,
+              year,
+              activeElectionLevel
+            );
+          }}
+          onEachFeature={(feature, layer) => {
+            layer.on("click", () => {
+              if (activeDataType === "Победитель") {
+                setSelectedFeature(null);
+                setTimeout(() => setSelectedFeature(feature), 0);
+              }
+            });
+          }}
+        />
+      )}
+
 
 
 			{showDistrictLayer && districtData && showPrecinctLayer && (
@@ -676,33 +758,75 @@ return (
 			  />
 			)}
 
-			{showPrecinctLayer && uikData && (
-			  <GeoJSON
-				key={`uiks-${year}-${activeElectionLevel}-${activeDataType}-${uikData?.features?.length || 0}`}
-				data={uikData}
-				style={(feature) => {
-				  if (activeDataType === "Победитель") {
-					return {
-					  color: "#333",
-					  weight: 1,
-					  fillOpacity: 1,
-					  fillColor: getWinnerColorByAdvantage(feature.properties, year, activeElectionLevel),
-					};
-				  }
-				  return getStyleByDataType(feature.properties, activeDataType, year, activeElectionLevel);
-				}}
-				onEachFeature={(feature, layer) => {
-				  layer.on({
-					click: () => {
-					  if (activeDataType === "Победитель") {
-						setSelectedFeature(null);
-						setTimeout(() => setSelectedFeature(feature), 0);
-					  }
-					},
-				  });
-				}}
-			  />
-			)}
+      {showPrecinctLayer && uikData && (
+        <GeoJSON
+          key={`uiks-${year}-${activeElectionLevel}-${activeDataType}-${uikData.features.length}`}
+          data={uikData}
+          style={(feature) => {
+            if (activeDataType === "Победитель") {
+              const fillColor = getWinnerColorByAdvantage(
+                feature.properties,
+                year,
+                activeElectionLevel
+              );
+
+              let fillOpacity = 1;
+              if (year === 2018 && activeElectionLevel === "Президент") {
+                const prefix = electionPrefixes["Президент"][2018] || "";
+                const winnerKey = Object
+                  .entries(feature.properties)
+                  .filter(([k]) => k.startsWith(prefix))
+                  .sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+                const winner = winnerKey.replace(prefix, "");
+                const level = legendLevels[winner] || 1;
+                const alphas = [0.2, 0.4, 0.6, 0.8];
+                fillOpacity = alphas[level - 1] || alphas[0];
+              }
+
+              return {
+                color: "#000",
+                weight: 2,
+                fillOpacity,
+                fillColor
+              };
+            }
+
+            return getStyleByDataType(
+              feature.properties,
+              activeDataType,
+              year,
+              activeElectionLevel
+            );
+          }}
+          onEachFeature={(feature, layer) => {
+            layer.on("click", () => {
+              if (activeDataType === "Победитель") {
+                setSelectedFeature(null);
+                setTimeout(() => setSelectedFeature(feature), 0);
+              }
+            });
+
+            layer.on("mouseover", () => {
+              console.log(
+                `UIK №${feature.properties.uik_num} — fillOpacity:`,
+                layer.options.fillOpacity
+              );
+            });
+
+            layer.bindTooltip(
+              `UIK №${feature.properties.uik_num}<br/>` +
+              `fillOpacity: ${layer.options.fillOpacity}`,
+              { direction: "auto", sticky: true }
+            );
+          }}
+        />
+      )}
+
+
+
+
+
+
 
 			{selectedFeature && (
 			  <GeoJSON
