@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/MoscowElectionwebmap/static/css/main.869e23bf.css",
-    "main.js": "/MoscowElectionwebmap/static/js/main.16138164.js",
+    "main.css": "/MoscowElectionwebmap/static/css/main.3719ac34.css",
+    "main.js": "/MoscowElectionwebmap/static/js/main.1d8e0a76.js",
     "static/js/453.fd1066bb.chunk.js": "/MoscowElectionwebmap/static/js/453.fd1066bb.chunk.js",
     "index.html": "/MoscowElectionwebmap/index.html",
-    "main.869e23bf.css.map": "/MoscowElectionwebmap/static/css/main.869e23bf.css.map",
-    "main.16138164.js.map": "/MoscowElectionwebmap/static/js/main.16138164.js.map",
+    "main.3719ac34.css.map": "/MoscowElectionwebmap/static/css/main.3719ac34.css.map",
+    "main.1d8e0a76.js.map": "/MoscowElectionwebmap/static/js/main.1d8e0a76.js.map",
     "453.fd1066bb.chunk.js.map": "/MoscowElectionwebmap/static/js/453.fd1066bb.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.869e23bf.css",
-    "static/js/main.16138164.js"
+    "static/css/main.3719ac34.css",
+    "static/js/main.1d8e0a76.js"
   ]
 }
