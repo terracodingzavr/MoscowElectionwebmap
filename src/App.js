@@ -8,7 +8,7 @@ import { useMapEvents } from "react-leaflet";
 
 
 
-// Эти два блока вынеси вверх файла, вместе с другими константами
+
 const defaultAdvantageSteps = [
   [5, 0.2],
   [10, 0.4],
@@ -148,7 +148,7 @@ const baseColors = {
   'КПРФ':                 '#D11D22',  // красный КПРФ
   'ЛДПР':                 '#FFCC00',  // жёлтый ЛДПР
   'Справедливая Россия':  '#E31E1C',  // тёмно-красный СР
-  'Новые Люди':           '#00BFFF',  // небесно-голубой
+  'Новые Люди':           '#00BFFF',  // небесно-голубой НВ
 };
 
 
@@ -171,11 +171,11 @@ const turnoutThresholds = [
 ];
 
 const presidentColors = {
-  Путин: "#0072bc",         // как у Собянина — синий
-  Зюганов: "#d73027",       // ярко-красный
-  Прохоров: "#00ff00",      // кислотно-зелёный
-  Жириновский: "#00bfff",   // голубой
-  Миронов: "#ffcc00"        // желто-оранжевый
+  Путин: "#0072bc",         // Синий
+  Зюганов: "#d73027",       // Ярко-красный
+  Прохоров: "#00ff00",      // Кислотно-зеленый
+  Жириновский: "#00bfff",   // Голубой
+  Миронов: "#ffcc00"        // Песочный
 };
 
 
@@ -242,10 +242,10 @@ function getStyleByDataType(props, dataType, year, activeElectionLevel) {
 	const fillColor = invalidThresholds.find(t => value < t.limit)?.color || "#ccc";
 
     return {
-      color: "#000",        // граница УИКов/районов — чёрная
+      color: "#000",        
       weight: 1,
       fillOpacity: 0.8,
-      fillColor: fillColor, // заливка по проценту испорченных бюллетеней
+      fillColor: fillColor, 
     };
 }}
 
@@ -253,7 +253,7 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
   let candidates = {};
   let colorPalette = {};
 
-  // --- Выбираем кандидатов и палитру ---
+
   if (activeElectionLevel === "Президент") {
     if (year === 2012) {
       if (props.uik_num) {
@@ -313,8 +313,8 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
     for (const key in props) {
       if (!key.startsWith(prefix)) continue;
 
-      const rawName = key.slice(prefix.length);        // например "Единая Россия"
-      if (!(rawName in duma2016Colors)) continue;      // фильтруем по вашей палитре
+      const rawName = key.slice(prefix.length);       
+      if (!(rawName in duma2016Colors)) continue;     
 
       candidates[rawName] = props[key];
     }
@@ -345,7 +345,7 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
     colorPalette = baseColors;
   }
 
-  // --- Определяем победителя ---
+
   const sorted = Object.entries(candidates).sort((a, b) => b[1] - a[1]);
   if (sorted.length === 0) {
     return "rgba(204,204,204,0.3)";
@@ -354,13 +354,13 @@ function getWinnerColorByAdvantage(props, year, activeElectionLevel) {
   const advantage = sorted[0][1] - (sorted[1]?.[1] ?? 0);
   const baseColor = colorPalette[winner] || "#cccccc";
 
-  // --- Шаги прозрачности (как у вас было) ---
+
   const steps = (activeElectionLevel === "Президент" && year === 2018)
     ? advantageStepsPresident2018
     : defaultAdvantageSteps;
   const alpha = steps.find(([limit]) => advantage < limit)?.[1] || 1;
 
-  // Возвращаем итоговый цвет
+
   return shadeColor(baseColor, alpha);
 }
 
@@ -395,7 +395,6 @@ function App() {
   const [selectedFeature, setSelectedFeature] = useState(null);
   
   useEffect(() => {
-    // 1. Определяем, что грузить — UIK или район
     const detailMap = {
       true:  'uik',      // если зум больше порога
       false: 'district'  // иначе
@@ -412,7 +411,6 @@ function App() {
     const level     = levelMap[activeElectionLevel];
     if (!detail || !level) return;
 
-    // 2. Формируем имя файла и подгружаем GeoJSON
     const fileName = `${detail}_${level}_${year}.geojson`;
     fetch(`${process.env.PUBLIC_URL}/data/${fileName}`)
       .then(res => {
@@ -420,7 +418,6 @@ function App() {
         return res.json();
       })
       .then(data => {
-        // 3. Для legendLevels используем префикс из electionPrefixes
         const prefix = electionPrefixes[activeElectionLevel]?.[year] || '';
 
         if (detail === 'uik') {
@@ -554,7 +551,6 @@ return (
                 name:  key.replace(prefix, ""),
                 value
               }))
-              // Оставляем только партии из списка и только кандидатов (имя с заглавной буквы)
               .filter(({ key, name }) =>
                 key.startsWith(prefix) &&
                 /^[А-ЯЁ]/.test(name) &&
@@ -712,10 +708,8 @@ return (
           style={(feature) => {
             if (activeDataType === "Победитель") {
               return {
-                // чёрная граница, как прежде
                 color: "#000",
                 weight: 2,
-                // полностью непрозрачная заливка
                 fillOpacity: 1,
                 // цвет победителя берётся из baseColors через getWinnerColorByAdvantage
                 fillColor: getWinnerColorByAdvantage(
@@ -725,7 +719,6 @@ return (
                 ),
               };
             }
-            // для остальных типов данных используем уже готовую функцию
             return getStyleByDataType(
               feature.properties,
               activeDataType,
