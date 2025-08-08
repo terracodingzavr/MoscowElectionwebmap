@@ -33,7 +33,7 @@ h1::after {
 
 .title-wrapper {
   position: relative;
-  height: 100px; /* задаём фиксированную высоту */
+  height: 100px;
   margin-bottom: 40px;
 }
 
@@ -47,7 +47,7 @@ h1::after {
 .title-decorated::after {
   content: "";
   position: absolute;
-  top: 0px; /* настраивай по вертикали */
+  top: 0px; 
   width: 0;
   height: 0;
   z-index: 1;
@@ -74,14 +74,14 @@ h1::after {
 /* СЛАЙДЕР */
 .slider-container {
   width: 300px;
-  margin: 5px auto 25px; /* уменьшили верхний отступ (было 1px) */
+  margin: 5px auto 25px; 
   z-index: 1001;
   text-align: center;
 }
 
 .slider-container label {
   display: block;
-  font-size: 18px; /* увеличили шрифт */
+  font-size: 18px; 
   font-weight: 500;
   margin-top: -20px;
   margin-bottom: 10px;
@@ -90,17 +90,17 @@ h1::after {
 
 .slider-track {
   background: #ccc;
-  height: 10px; /* Было 6px → стало выше */
+  height: 10px;
   border-radius: 5px;
 }
 
 .slider-thumb {
-  height: 20px; /* Сделал больше для пропорции */
+  height: 20px; 
   width: 20px;
   background-color: #007bff;
   border-radius: 50%;
   cursor: grab;
-  margin-top: -5px; /* Подстроим под высоту трека */
+  margin-top: -5px; 
 }
 /* КАРТА */
 .map-wrapper {
@@ -205,7 +205,7 @@ h1::after {
 
 .center-controls {
   position: absolute;
-  top: 10px; /* Отступ от верха, между top-controls и controls */
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 401;
@@ -230,7 +230,7 @@ h1::after {
 }
 
 .center-controls button:last-child {
-  border-right: none; /* Убираем границу у последней */
+  border-right: none; 
 }
 
 .center-controls button:hover {
@@ -359,7 +359,7 @@ h1::after {
 .legend-candidate {
   display: flex;
   flex-direction: column-reverse;
-  align-items: flex-start; /* Было center */
+  align-items: flex-start; 
 }
 
 .legend-entry {
@@ -367,7 +367,7 @@ h1::after {
   align-items: center;
   gap: 8px;
   margin: 4px 0;
-  justify-content: start; /* Добавим это */
+  justify-content: start; 
 }
 
 
@@ -435,7 +435,7 @@ h1::after {
 }
 
 .bar-label {
-  width: 80px; /* фиксированная ширина под фамилию */
+  width: 80px; 
   text-align: right;
   font-weight: 500;
   font-size: 14px;
@@ -463,7 +463,7 @@ h1::after {
 }
 
 .district-layer path {
-  stroke: #000;       /* чёрная граница */
-  stroke-width: 2;    /* как у районного слоя */
-  fill-opacity: 1;    /* сплошная заливка */
+  stroke: #000;       
+  stroke-width: 2;  
+  fill-opacity: 1;
 }
